@@ -1,0 +1,7 @@
+= DBSchemaSync
+
+https://github.com/courseorchestra/celesta[Celesta] -- https://www.dbschema.com[DBSchema] sync utility. 
+
+Also exports DBSchema models to PlantUML.
+
+See https://courseorchestra.github.io/celesta/#DBSchema[User Guide].
