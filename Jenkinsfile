@@ -27,7 +27,7 @@ node {
            tools: [java(), 
                    checkStyle(pattern: '**/target/checkstyle-result.xml', reportEncoding: 'UTF-8'),
                    spotBugs(pattern: '**/target/spotbugsXml.xml')
-                  ]
+                  ],
            qualityGates: [[threshold: 1, type: 'TOTAL']]
         )
     }
