@@ -1,6 +1,8 @@
 package ru.curs.dbschemasync;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import ru.curs.celesta.score.AbstractScore;
 import ru.curs.celesta.score.Score;
@@ -14,7 +16,10 @@ import static java.lang.System.out;
 public final class DBSchemaSync {
 
     private DBSchemaSync() {
+    }
 
+    ArrayList<String> a(List<?> a){
+        return (ArrayList<String>) a;
     }
 
     /**
