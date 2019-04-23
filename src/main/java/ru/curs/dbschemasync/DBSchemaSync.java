@@ -1,8 +1,6 @@
 package ru.curs.dbschemasync;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import ru.curs.celesta.score.AbstractScore;
 import ru.curs.celesta.score.Score;
