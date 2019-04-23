@@ -1,4 +1,4 @@
-package ru.curs.celesta.dbschemasync;
+package ru.curs.dbschemasync;
 
 import java.io.File;
 

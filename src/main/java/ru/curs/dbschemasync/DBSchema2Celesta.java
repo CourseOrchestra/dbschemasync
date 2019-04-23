@@ -1,4 +1,4 @@
-package ru.curs.celesta.dbschemasync;
+package ru.curs.dbschemasync;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -22,7 +22,27 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ru.curs.celesta.CelestaException;
-import ru.curs.celesta.score.*;
+import ru.curs.celesta.score.AbstractScore;
+import ru.curs.celesta.score.BinaryColumn;
+import ru.curs.celesta.score.BooleanColumn;
+import ru.curs.celesta.score.Column;
+import ru.curs.celesta.score.DateTimeColumn;
+import ru.curs.celesta.score.DecimalColumn;
+import ru.curs.celesta.score.FKRule;
+import ru.curs.celesta.score.FloatingColumn;
+import ru.curs.celesta.score.ForeignKey;
+import ru.curs.celesta.score.Grain;
+import ru.curs.celesta.score.GrainPart;
+import ru.curs.celesta.score.GrainSaver;
+import ru.curs.celesta.score.Index;
+import ru.curs.celesta.score.IntegerColumn;
+import ru.curs.celesta.score.Namespace;
+import ru.curs.celesta.score.ParseException;
+import ru.curs.celesta.score.StringColumn;
+import ru.curs.celesta.score.Table;
+import ru.curs.celesta.score.View;
+import ru.curs.celesta.score.ViewColumnMeta;
+import ru.curs.celesta.score.ZonedDateTimeColumn;
 import ru.curs.celesta.score.io.FileResource;
 import ru.curs.celesta.score.io.Resource;
 
@@ -325,9 +345,9 @@ public final class DBSchema2Celesta {
      * @param options  list of options
      * @throws ParseException  error on table definition
      */
-    // CHECKSTYLE:OFF for cyclomatic complexity: this is finite state machine
+
+    @SuppressWarnings("CyclomaticComplexity") //This is state machine method
     private static void parseOptions(List<String> options, Table t) throws ParseException {
-        // CHECKSTYLE:ON
         int state = 0;
         for (String option : options) {
             switch (state) {

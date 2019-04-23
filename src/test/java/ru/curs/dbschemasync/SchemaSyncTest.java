@@ -1,4 +1,4 @@
-package ru.curs.celesta.dbschemasync;
+package ru.curs.dbschemasync;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
