@@ -1,4 +1,5 @@
 = DBSchemaSync
+
 image::https://ci.corchestra.ru/buildStatus/icon?job=dbschemasync/master[link=https://ci.corchestra.ru/job/dbschemasync/job/master/]
 
 https://github.com/courseorchestra/celesta[Celesta] -- https://www.dbschema.com[DBSchema] sync utility. 
