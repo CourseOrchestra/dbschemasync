@@ -22,6 +22,7 @@ node {
         }
     } finally {
         junit 'target/surefire-reports/**/*.xml'
+        step( [ $class: 'JacocoPublisher', execPattern: '**/target/jacoco.exec' ] ) 
         recordIssues(
            enabledForFailure: true,
            tools: [checkStyle(pattern: '**/target/checkstyle-result.xml', reportEncoding: 'UTF-8'),
