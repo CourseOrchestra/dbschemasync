@@ -18,10 +18,6 @@ public final class DBSchemaSync {
     private DBSchemaSync() {
     }
 
-    ArrayList<String> a(List<?> a){
-        return (ArrayList<String>) a;
-    }
-
     /**
      * The main method.
      *
