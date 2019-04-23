@@ -53,7 +53,7 @@
         <checkstyle.version>8.18</checkstyle.version>
 
         <!--plugin versions -->
-        <maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
         <appassembler.maven.plugin.version>1.10</appassembler.maven.plugin.version>
         <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
         <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
@@ -116,6 +116,10 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <encoding>utf-8</encoding>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgs>
+                        <arg>-Xlint:all</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
