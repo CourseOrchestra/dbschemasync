@@ -26,7 +26,7 @@ public class SchemaSyncTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaSyncTest.class);
 
     @Test
-    void celestaToDbs() throws Exception {
+    public void celestaToDbs() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -59,7 +59,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelesta() throws Exception {
+    public void dbsToCelesta() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -90,7 +90,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelestaLegacy() throws Exception {
+    public void dbsToCelestaLegacy() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -155,7 +155,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelestaNoNamespace() throws Exception {
+    public void dbsToCelestaNoNamespace() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -184,7 +184,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void bothWays() throws Exception {
+    public void bothWays() throws Exception {
 
         String scorePath = getScorePath("score");
         Score s = new Score.ScoreBuilder<>(Score.class)
