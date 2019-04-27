@@ -19,6 +19,7 @@ import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SchemaSyncTest {
@@ -26,7 +27,7 @@ public class SchemaSyncTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchemaSyncTest.class);
 
     @Test
-    void celestaToDbs() throws Exception {
+    public void celestaToDbs() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -59,7 +60,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelesta() throws Exception {
+    public void dbsToCelesta() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -90,7 +91,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelestaLegacy() throws Exception {
+    public void dbsToCelestaLegacy() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -155,7 +156,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void dbsToCelestaNoNamespace() throws Exception {
+    public void dbsToCelestaNoNamespace() throws Exception {
 
         File tmpDir = Files.createTempDirectory("celestaTest").toFile();
         try {
@@ -184,7 +185,7 @@ public class SchemaSyncTest {
     }
 
     @Test
-    void bothWays() throws Exception {
+    public void bothWays() throws Exception {
 
         String scorePath = getScorePath("score");
         Score s = new Score.ScoreBuilder<>(Score.class)
@@ -217,6 +218,23 @@ public class SchemaSyncTest {
 
         assertEquals(oldval.toString().replaceAll("\\r\\n", "\n"),
                      newval.toString().replaceAll("\\r\\n", "\n"));
+    }
+
+    @Test
+    public void testMainWithoutArgs() throws Exception {
+
+        final PrintStream originalOut = System.out;
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+        try {
+            Exception ex = assertThrows(Exception.class, () -> DBSchemaSync.main(new String[0]));
+            assertTrue(ex.getMessage().startsWith("There should be two arguments"));
+
+            assertTrue(outContent.toString().startsWith("This is DBSchemaSync"));
+        } finally {
+            System.setOut(originalOut);
+        }
     }
 
 }

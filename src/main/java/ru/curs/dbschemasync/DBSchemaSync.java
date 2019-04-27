@@ -2,9 +2,11 @@ package ru.curs.dbschemasync;
 
 import java.io.File;
 
+import ru.curs.celesta.Celesta;
 import ru.curs.celesta.score.AbstractScore;
 import ru.curs.celesta.score.Score;
 import ru.curs.celesta.score.discovery.ScoreByScorePathDiscovery;
+import ru.curs.dbschemasync.ver.DBSchemaVersion;
 
 import static java.lang.System.out;
 
@@ -23,6 +25,12 @@ public final class DBSchemaSync {
      * @throws Exception  if something went wrong
      */
     public static void main(String[] args) throws Exception {
+        out.println(
+            String.format("This is DBSchemaSync ver. %s (CelestaSQL ver. %s).",
+                DBSchemaVersion.VERSION == null ? "N/A (invalid build?)" : DBSchemaVersion.VERSION,
+                Celesta.VERSION == null ? "N/A (invalid build?)" : Celesta.VERSION
+        ));
+
         // "c:/Users/Ivan/workspace/celesta/score/"
         // "c:/Users/Ivan/Desktop/test2.dbs"
         if (args.length < 2) {
