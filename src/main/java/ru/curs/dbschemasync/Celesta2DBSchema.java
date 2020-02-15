@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import ru.curs.celesta.score.BasicTable;
 import ru.curs.celesta.score.Column;
 import ru.curs.celesta.score.ForeignKey;
 import ru.curs.celesta.score.Grain;
@@ -32,6 +33,7 @@ import ru.curs.celesta.score.Index;
 import ru.curs.celesta.score.Namespace;
 import ru.curs.celesta.score.AbstractScore;
 import ru.curs.celesta.score.CelestaSerializer;
+import ru.curs.celesta.score.ReadOnlyTable;
 import ru.curs.celesta.score.StringColumn;
 import ru.curs.celesta.score.Table;
 import ru.curs.celesta.score.View;
@@ -103,7 +105,7 @@ public final class Celesta2DBSchema {
             root.insertBefore(schema, layout);
             writeComment(g.getCelestaDoc(), doc, schema);
 
-            for (Table t : g.getTables().values()) {
+            for (BasicTable t : g.getTables().values()) {
                 writeTable(g, t, doc, schema);
             }
 
@@ -177,7 +179,7 @@ public final class Celesta2DBSchema {
         }
     }
 
-    private static void writeTable(Grain g, Table t, Document doc, Element schema) {
+    private static void writeTable(Grain g, BasicTable t, Document doc, Element schema) {
         Element table = doc.createElement("table");
         table.setAttribute("name", t.getName());
         schema.appendChild(table);
@@ -226,7 +228,7 @@ public final class Celesta2DBSchema {
             default:
             }
 
-            Iterator<Column> i = fk.getReferencedTable().getPrimaryKey().values().iterator();
+            Iterator<Column<?>> i = fk.getReferencedTable().getPrimaryKey().values().iterator();
             for (Column c : fk.getColumns().values()) {
                 Element fkColumn = doc.createElement("fk_column");
                 efk.appendChild(fkColumn);
@@ -265,25 +267,25 @@ public final class Celesta2DBSchema {
         view.appendChild(viewScript);
 
         // Writing columns
-        for (Map.Entry<String, ViewColumnMeta> c : v.getColumns().entrySet()) {
+        for (Map.Entry<String, ViewColumnMeta<?>> c : v.getColumns().entrySet()) {
             writeColumn(c, doc, view);
         }
     }
 
-    private static void writeColumn(Map.Entry<String, ViewColumnMeta> c, Document doc, Element view) {
+    private static void writeColumn(Map.Entry<String, ViewColumnMeta<?>> c, Document doc, Element view) {
         Element column = doc.createElement("column");
         column.setAttribute("name", c.getKey());
         column.setAttribute("type", c.getValue().getCelestaType());
         view.appendChild(column);
     }
 
-    private static void writeOptions(Table t, Document doc, Element table) {
+    private static void writeOptions(BasicTable t, Document doc, Element table) {
         Element storage = doc.createElement("storage");
         String options;
-        if (t.isVersioned()) {
+        if ((t instanceof Table) && ((Table) t).isVersioned()) {
             options = "WITH VERSION CHECK";
         } else {
-            if (t.isReadOnly()) {
+            if (t instanceof ReadOnlyTable) {
                 options = "WITH READ ONLY";
             } else {
                 options = "WITH NO VERSION CHECK";

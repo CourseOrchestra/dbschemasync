@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import org.w3c.dom.NodeList;
 
 import ru.curs.celesta.CelestaException;
 import ru.curs.celesta.score.AbstractScore;
+import ru.curs.celesta.score.BasicTable;
 import ru.curs.celesta.score.BinaryColumn;
 import ru.curs.celesta.score.BooleanColumn;
 import ru.curs.celesta.score.Column;
@@ -42,6 +44,7 @@ import ru.curs.celesta.score.Index;
 import ru.curs.celesta.score.IntegerColumn;
 import ru.curs.celesta.score.Namespace;
 import ru.curs.celesta.score.ParseException;
+import ru.curs.celesta.score.ReadOnlyTable;
 import ru.curs.celesta.score.StringColumn;
 import ru.curs.celesta.score.Table;
 import ru.curs.celesta.score.View;
@@ -65,11 +68,11 @@ public final class DBSchema2Celesta {
     /**
      * Converts DBS to Score.
      *
-     * @param dbs           DBS file
-     * @param refScore      score
-     * @param scoreFile     score file
-     * @param withPlantUml  also render PlantUml diagrams for every View
-     * @throws Exception    any error
+     * @param dbs          DBS file
+     * @param refScore     score
+     * @param scoreFile    score file
+     * @param withPlantUml also render PlantUml diagrams for every View
+     * @throws Exception any error
      */
     public static void dBSToScore(
             File dbs, AbstractScore refScore, File scoreFile, boolean withPlantUml) throws Exception {
@@ -101,7 +104,7 @@ public final class DBSchema2Celesta {
                 if (g == null) {
                     g = new Grain(refScore, grainName);
                     Resource source = new FileResource(scoreFile).createRelative(namespace)
-                                                                 .createRelative(grainName + ".sql", namespace);
+                            .createRelative(grainName + ".sql", namespace);
                     new GrainPart(g, true, source);
                 }
 
@@ -170,7 +173,7 @@ public final class DBSchema2Celesta {
         File docFile = new File(dbs.getAbsoluteFile().getParentFile().getAbsolutePath(),
                 String.format("%s.adoc", viewName));
         try {
-            try (PrintWriter bw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(docFile), "utf-8"))) {
+            try (PrintWriter bw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(docFile), StandardCharsets.UTF_8))) {
                 bw.printf("[uml,file=\"%s.png\"]%n", viewName);
                 bw.println("--");
                 bw.println("@startuml");
@@ -179,17 +182,17 @@ public final class DBSchema2Celesta {
                 bw.println("skinparam dpi 150");
                 bw.println();
                 NodeList l = layout.getChildNodes();
-                Set<Table> tables = new HashSet<>();
+                Set<BasicTable> tables = new HashSet<>();
                 for (int i = 0; i < l.getLength(); i++) {
                     Node n = l.item(i);
                     if ("entity".equals(n.getNodeName())) {
                         Element entity = (Element) n;
                         Grain g = refScore.getGrain(extractGrainName(entity.getAttribute("schema")));
                         String eName = entity.getAttribute("name");
-                        Table t = g.getTables().get(eName);
+                        BasicTable t = g.getTables().get(eName);
                         if (t != null) {
                             bw.printf("class %s {%n", t.getName());
-                            for (Entry<String, Column> c : t.getColumns().entrySet()) {
+                            for (Entry<String, Column<?>> c : t.getColumns().entrySet()) {
                                 bw.printf("  %s: %s%n", c.getKey(), c.getValue().getCelestaType());
                             }
                             bw.println("}");
@@ -199,7 +202,7 @@ public final class DBSchema2Celesta {
                             View v = g.getViews().get(eName);
                             if (v != null) {
                                 bw.printf("class %s <<view>>{%n", v.getName());
-                                for (Entry<String, ViewColumnMeta> c : v.getColumns().entrySet()) {
+                                for (Entry<String, ViewColumnMeta<?>> c : v.getColumns().entrySet()) {
                                     bw.write(String.format("  %s: %s%n", c.getKey(), c.getValue().getCelestaType()));
                                 }
                                 bw.println("}");
@@ -209,9 +212,9 @@ public final class DBSchema2Celesta {
                     }
                 }
                 // Add references between the tables that are present on the diagram.
-                for (Table t : tables) {
+                for (BasicTable t : tables) {
                     for (ForeignKey fk : t.getForeignKeys()) {
-                        Table refTable = fk.getReferencedTable();
+                        BasicTable refTable = fk.getReferencedTable();
 
                         String columns = fk.getColumns().size() == 1 ? fk.getColumns().keySet().iterator().next()
                                 : fk.getColumns().keySet().toString();
@@ -239,7 +242,7 @@ public final class DBSchema2Celesta {
             Node n = l.item(i);
             if ("table".equals(n.getNodeName())) {
                 Element table = (Element) n;
-                Table t = g.getTable(table.getAttribute("name"));
+                BasicTable t = g.getTable(table.getAttribute("name"));
                 updateTableFK(table, t);
             }
         }
@@ -251,8 +254,8 @@ public final class DBSchema2Celesta {
         for (Index i : indices) {
             i.delete();
         }
-        List<Table> tables = new ArrayList<>(g.getTables().values());
-        for (Table t : tables) {
+        List<BasicTable> tables = new ArrayList<>(g.getTables().values());
+        for (BasicTable t : tables) {
             t.delete();
         }
         List<View> views = new ArrayList<>(g.getViews().values());
@@ -277,8 +280,7 @@ public final class DBSchema2Celesta {
             } else if ("table".equals(n.getNodeName())) {
                 Element table = (Element) n;
                 GrainPart gp = g.getGrainParts().stream().filter(GrainPart::isDefinition).findFirst().get();
-                Table t = new Table(gp, table.getAttribute("name"));
-                updateTable(table, t);
+                updateTable(table, gp, table.getAttribute("name"));
             } else if ("view".equals(n.getNodeName())) {
                 Element view = (Element) n;
                 createView(g, view);
@@ -306,7 +308,7 @@ public final class DBSchema2Celesta {
         }
     }
 
-    private static void updateTableFK(Element table, Table t) throws ParseException {
+    private static void updateTableFK(Element table, BasicTable t) throws ParseException {
         NodeList l = table.getChildNodes();
         for (int i = 0; i < l.getLength(); i++) {
             Node n = l.item(i);
@@ -321,38 +323,46 @@ public final class DBSchema2Celesta {
         return comment.getTextContent().trim();
     }
 
-    private static void updateTable(Element table, Table t) throws Exception {
+    private static void updateTable(Element table, GrainPart gp, String tableName) throws Exception {
         NodeList l = table.getChildNodes();
+        String comment = null;
+        List<Element> columns = new ArrayList<>();
+        List<Element> indices = new ArrayList<>();
         List<String> options = Collections.emptyList();
         for (int i = 0; i < l.getLength(); i++) {
             Node n = l.item(i);
             if ("comment".equals(n.getNodeName())) {
-                t.setCelestaDoc(extractComment((Element) n));
+                comment = extractComment((Element) n);
             } else if ("column".equals(n.getNodeName())) {
-                Element column = (Element) n;
-                updateColumn(column, t);
+                columns.add((Element) n);
             } else if ("index".equals(n.getNodeName())) {
-                Element index = (Element) n;
-                updateIndex(index, t);
+                indices.add((Element) n);
             } else if ("storage".equals(n.getNodeName())) {
                 Element storage = (Element) n;
                 options = Arrays.asList(extractComment(storage).split("\\s+"));
             }
         }
-        parseOptions(options, t);
+
+        BasicTable t = parseOptions(options, gp, tableName);
+        t.setCelestaDoc(comment);
+        for (Element column : columns)
+            updateColumn(column, t);
+        for (Element index : indices)
+            updateIndex(index, t);
         t.finalizePK();
     }
 
     /**
      * Finalizes the table with the list of WITH options.
      *
-     * @param options  list of options
-     * @throws ParseException  error on table definition
+     * @param options list of options
+     * @throws ParseException error on table definition
      */
 
     @SuppressWarnings("CyclomaticComplexity") //This is state machine method
-    private static void parseOptions(List<String> options, Table t) throws ParseException {
+    private static BasicTable parseOptions(List<String> options, GrainPart gp, String tableName) throws ParseException {
         int state = 0;
+        BasicTable t = null;
         for (String option : options) {
             switch (state) {
                 // beginning
@@ -360,30 +370,30 @@ public final class DBSchema2Celesta {
                     if ("with".equalsIgnoreCase(option)) {
                         state = 1;
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 // 'with' read
                 case 1:
                     if ("read".equalsIgnoreCase(option)) {
-                        t.setVersioned(false);
-                        t.setReadOnly(true);
+                        t = new ReadOnlyTable(gp, tableName);
                         state = 2;
                     } else if ("version".equalsIgnoreCase(option)) {
-                        t.setReadOnly(false);
-                        t.setVersioned(true);
+                        Table tt = new Table(gp, tableName);
+                        tt.setVersioned(true);
+                        t = tt;
                         state = 3;
                     } else if ("no".equalsIgnoreCase(option)) {
                         state = 4;
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 case 2:
                     if ("only".equalsIgnoreCase(option)) {
                         state = 5;
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 case 3:
@@ -397,20 +407,22 @@ public final class DBSchema2Celesta {
                     // 'no' read for the first time
                     if ("version".equalsIgnoreCase(option)) {
                         state = 3;
-                        t.setReadOnly(false);
-                        t.setVersioned(false);
+                        Table tt = new Table(gp, tableName);
+                        tt.setVersioned(false);
+                        t = tt;
                     } else if ("autoupdate".equalsIgnoreCase(option)) {
                         state = 7;
+                        t = new Table(gp, tableName);
                         t.setAutoUpdate(false);
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 case 5:
                     if ("no".equalsIgnoreCase(option)) {
                         state = 6;
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 case 6:
@@ -418,11 +430,11 @@ public final class DBSchema2Celesta {
                         state = 7;
                         t.setAutoUpdate(false);
                     } else {
-                        throwPE(option, t.getName());
+                        throwPE(option, tableName);
                     }
                     break;
                 case 7:
-                    throwPE(option, t.getName());
+                    throwPE(option, tableName);
                     break;
                 default:
                     break;
@@ -430,8 +442,14 @@ public final class DBSchema2Celesta {
         }
 
         if (!(state == 0 || state == 5 || state == 7)) {
-            throwPE("", t.getName());
+            throwPE("", tableName);
         }
+
+        if (t == null) {
+            t = new Table(gp, tableName);
+        }
+
+        return t;
     }
 
     private static void throwPE(String option, String tableName) throws ParseException {
@@ -442,12 +460,12 @@ public final class DBSchema2Celesta {
                         tableName, option));
     }
 
-    private static void updateFK(Element fk, Table t) throws ParseException {
+    private static void updateFK(Element fk, BasicTable t) throws ParseException {
         String toSchema = fk.getAttribute("to_schema");
         String toTable = fk.getAttribute("to_table");
         String name = fk.getAttribute("name");
 
-        Table referencedTable = t.getGrain().getScore().getGrain(toSchema).getTable(toTable);
+        BasicTable referencedTable = t.getGrain().getScore().getGrain(toSchema).getTable(toTable);
 
         NodeList l = fk.getChildNodes();
         List<String> columns = new ArrayList<>(l.getLength());
@@ -479,7 +497,7 @@ public final class DBSchema2Celesta {
         }
     }
 
-    private static void updateIndex(Element index, Table t) throws ParseException {
+    private static void updateIndex(Element index, BasicTable t) throws ParseException {
         NodeList l = index.getChildNodes();
         String name = index.getAttribute("name");
 
@@ -505,7 +523,7 @@ public final class DBSchema2Celesta {
 
     }
 
-    private static void updateColumn(Element column, Table t) throws ParseException {
+    private static void updateColumn(Element column, BasicTable t) throws ParseException {
         String celestaType = column.getAttribute("type");
         String columnName = column.getAttribute("name");
         boolean isNullable = !"y".equals(column.getAttribute("mandatory"));
