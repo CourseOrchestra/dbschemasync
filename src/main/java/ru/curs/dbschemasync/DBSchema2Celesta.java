@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -170,10 +173,11 @@ public final class DBSchema2Celesta {
 
     private static void writeADoc(File dbs, Element layout, AbstractScore refScore) {
         String viewName = layout.getAttribute("name");
-        File docFile = new File(dbs.getAbsoluteFile().getParentFile().getAbsolutePath(),
+        Path docFile = Paths.get(dbs.getAbsoluteFile().getParentFile().getAbsolutePath(),
                 String.format("%s.adoc", viewName));
         try {
-            try (PrintWriter bw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(docFile), StandardCharsets.UTF_8))) {
+            try (PrintWriter bw = new PrintWriter(
+                    Files.newBufferedWriter(docFile, StandardCharsets.UTF_8))) {
                 bw.printf("[uml,file=\"%s.png\"]%n", viewName);
                 bw.println("--");
                 bw.println("@startuml");
@@ -231,7 +235,7 @@ public final class DBSchema2Celesta {
             }
 
         } catch (IOException | ParseException e) {
-            throw new CelestaException("Cannot save '%s': %s", docFile.getName(), e.getMessage());
+            throw new CelestaException("Cannot save '%s': %s", docFile.toFile().getName(), e.getMessage());
         }
 
     }
@@ -345,10 +349,12 @@ public final class DBSchema2Celesta {
 
         BasicTable t = parseOptions(options, gp, tableName);
         t.setCelestaDoc(comment);
-        for (Element column : columns)
+        for (Element column : columns) {
             updateColumn(column, t);
-        for (Element index : indices)
+        }
+        for (Element index : indices) {
             updateIndex(index, t);
+        }
         t.finalizePK();
     }
 
