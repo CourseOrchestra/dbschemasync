@@ -47,7 +47,7 @@
 
         <!--dependency versions -->
         <celesta.version>7.3.0</celesta.version>
-        <junit.version>5.6.0</junit.version>
+        <junit.version>5.6.1</junit.version>
         <checkstyle.version>8.30</checkstyle.version>
 
         <!--plugin versions -->
