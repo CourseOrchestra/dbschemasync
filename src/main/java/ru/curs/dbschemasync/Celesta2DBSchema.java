@@ -282,7 +282,7 @@ public final class Celesta2DBSchema {
     private static void writeOptions(BasicTable t, Document doc, Element table) {
         Element storage = doc.createElement("storage");
         String options;
-        if ((t instanceof Table) && ((Table) t).isVersioned()) {
+        if (t instanceof Table && ((Table) t).isVersioned()) {
             options = "WITH VERSION CHECK";
         } else {
             if (t instanceof ReadOnlyTable) {
