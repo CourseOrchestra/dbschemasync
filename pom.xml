@@ -48,7 +48,7 @@
         <!--dependency versions -->
         <celesta.version>7.3.46</celesta.version>
         <junit.version>5.7.2</junit.version>
-        <checkstyle.version>8.44</checkstyle.version>
+        <checkstyle.version>8.45</checkstyle.version>
 
         <!--plugin versions -->
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
